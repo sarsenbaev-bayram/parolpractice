@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}VaultPass{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Variables ─────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0b0d11;
+      --surface:  #13161d;
+      --card:     #1a1e28;
+      --border:   #252a38;
+      --accent:   #00e5a0;
+      --accent2:  #0099ff;
+      --danger:   #ff4d6d;
+      --warn:     #ffb347;
+      --text:     #e8eaf0;
+      --muted:    #6b7280;
+      --mono:     'Space Mono', monospace;
+      --sans:     'DM Sans', sans-serif;
+      --radius:   12px;
+    }
+
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Grid noise background ─────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ───────────────────────────────────── */
+    nav {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,13,17,.85);
+      backdrop-filter: blur(12px);
+    }
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: .05em;
+    }
+    .nav-brand span { color: var(--text); }
+    .nav-links { display: flex; gap: 12px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .875rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all .2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--border); }
+    .nav-links a.btn-nav {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+    .nav-links a.btn-nav:hover { background: #00ffb3; }
+
+    /* ── Main wrapper ──────────────────────────── */
+    main {
+      flex: 1;
+      position: relative; z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+
+    /* ── Card ──────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      animation: slideUp .45s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(28px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .card-header { margin-bottom: 32px; }
+    .card-header h1 {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .card-header p { color: var(--muted); font-size: .9rem; }
+
+    /* ── Form elements ─────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: .95rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,229,160,.12);
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap input { padding-right: 44px; }
+    .toggle-eye {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer; color: var(--muted);
+      font-size: 1rem;
+      user-select: none;
+      transition: color .2s;
+    }
+    .toggle-eye:hover { color: var(--text); }
+
+    /* ── Buttons ───────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border: none; border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      width: 100%;
+    }
+    .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,160,.25); }
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: #2d3348; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent); background: rgba(0,229,160,.08); }
+
+    /* ── Flash messages ────────────────────────── */
+    .flash-list { list-style: none; margin-bottom: 20px; }
+    .flash-msg {
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: .875rem;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .flash-error   { background: rgba(255,77,109,.12); border: 1px solid rgba(255,77,109,.3); color: #ff7a93; }
+    .flash-success { background: rgba(0,229,160,.1);  border: 1px solid rgba(0,229,160,.3);  color: var(--accent); }
+    .flash-warning { background: rgba(255,179,71,.1); border: 1px solid rgba(255,179,71,.3); color: var(--warn); }
+
+    /* ── Strength bar ──────────────────────────── */
+    #strength-wrap { margin-top: 10px; display: none; }
+    .strength-bar-track {
+      height: 5px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .strength-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .4s ease, background .4s ease;
+      width: 0%;
+    }
+    #strength-label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .strength-tips {
+      margin-top: 8px;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+    .strength-tips li { margin-left: 16px; }
+
+    /* ── Divider ───────────────────────────────── */
+    .divider {
+      text-align: center;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: .8rem;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute; top: 50%;
+      width: calc(50% - 28px);
+      height: 1px;
+      background: var(--border);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    /* ── Footer link ───────────────────────────── */
+    .form-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: .875rem;
+      color: var(--muted);
+    }
+    .form-footer a { color: var(--accent); text-decoration: none; }
+    .form-footer a:hover { text-decoration: underline; }
+
+    /* ── Scrollbar ─────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/"><span>//</span> VaultPass</a>
+  <div class="nav-links">
+    <!-- Language Selector -->
+    <div class="lang-selector">
+      <select onchange="changeLanguage(this.value)" style="
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        padding: 6px 10px;
+        font-size: .85rem;
+        cursor: pointer;
+        transition: all .2s;
+      ">
+        <option value="en" {% if current_lang == 'en' %}selected{% endif %}>🇬🇧 English</option>
+        <option value="ru" {% if current_lang == 'ru' %}selected{% endif %}>🇷🇺 Русский</option>
+        <option value="uz" {% if current_lang == 'uz' %}selected{% endif %}>🇺🇿 O'zbekcha</option>
+        <option value="de" {% if current_lang == 'de' %}selected{% endif %}>🇩🇪 Deutsch</option>
+      </select>
+    </div>
+    
+    {% if session.get('username') %}
+      <span style="color:var(--muted);font-size:.85rem;padding:6px 4px;">
+        👤 {{ session['username'] }}
+      </span>
+      <a href="/dashboard">{{ t('nav.dashboard') }}</a>
+      {% if session.get('is_admin') %}
+        <a href="/admin">⚙️ {{ t('nav.admin') }}</a>
+      {% endif %}
+      <a href="/logout" class="btn-nav">{{ t('nav.logout') }}</a>
+    {% else %}
+      <a href="/login">{{ t('nav.login') }}</a>
+      <a href="/register" class="btn-nav">{{ t('nav.register') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  /* ── Password visibility toggle ──────────────── */
+  function togglePassword(inputId, iconId) {
+    const inp  = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!inp) return;
+    if (inp.type === 'password') {
+      inp.type = 'text'; icon.textContent = '🙈';
+    } else {
+      inp.type = 'password'; icon.textContent = '👁';
+    }
+  }
+
+  /* ── Password strength checker ───────────────── */
+  function initStrengthChecker(inputId) {
+    const inp   = document.getElementById(inputId);
+    const wrap  = document.getElementById('strength-wrap');
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    const tips  = document.getElementById('strength-tips');
+    if (!inp || !wrap) return;
+
+    inp.addEventListener('input', async () => {
+      const pw = inp.value;
+      if (!pw) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'block';
+
+      const res  = await fetch('/check-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw })
+      });
+      const data = await res.json();
+
+      const pct = (data.score / data.max_score) * 100;
+      fill.style.width = pct + '%';
+
+      const colors = { Weak: '#ff4d6d', Medium: '#ffb347', Strong: '#00e5a0' };
+      fill.style.background = colors[data.label] || '#fff';
+      label.textContent = data.label;
+      label.style.color = colors[data.label] || '#fff';
+
+      tips.innerHTML = data.tips.length
+        ? '<ul>' + data.tips.map(t => `<li>${t}</li>`).join('') + '</ul>'
+        : '';
+    });
+  }
+
+  /* ── Password generator ──────────────────────── */
+  async function generatePassword(targetId) {
+    const res  = await fetch('/generate-password?length=16');
+    const data = await res.json();
+    const inp  = document.getElementById(targetId);
+    if (inp) { inp.value = data.password; inp.dispatchEvent(new Event('input')); }
+    return data.password;
+  }
+
+  /* ── Language Selector ───────────────────────── */
+  function changeLanguage(lang) {
+    window.location.href = `/set-language/${lang}`;
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

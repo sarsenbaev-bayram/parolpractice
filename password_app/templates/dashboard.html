@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}{{ t('dashboard.title') }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Dashboard-specific styles */
+  main { align-items: flex-start; padding-top: 40px; }
+
+  .dashboard-grid {
+    width: 100%; max-width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    animation: slideUp .45s cubic-bezier(.22,.68,0,1.2) both;
+  }
+  @media (max-width: 640px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+  .dash-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  .dash-card.full { grid-column: 1 / -1; }
+
+  .dash-card h2 {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* Welcome card */
+  .welcome-card {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0d2518 0%, #111827 100%);
+    border-color: rgba(0,229,160,.2);
+    display: flex; align-items: center; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(0,229,160,.15);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+  .welcome-text h1 {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+  }
+  .welcome-text h1 span { color: var(--accent); }
+  .welcome-text p { color: var(--muted); font-size: .875rem; }
+
+  /* Stat badges */
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .stat-badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+  .stat-badge strong { color: var(--text); }
+
+  /* Password checker tool */
+  #check-result { margin-top: 14px; display: none; }
+  .meter-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .5s ease, background .5s;
+    width: 0%;
+  }
+  .result-label {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .tip-list { margin-top: 10px; font-size: .82rem; color: var(--muted); padding-left: 16px; }
+  .tip-list li { margin-bottom: 3px; }
+
+  /* Generator tool */
+  .gen-output {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: .9rem;
+    color: var(--accent);
+    letter-spacing: .05em;
+    word-break: break-all;
+    min-height: 52px;
+    position: relative;
+  }
+  .copy-badge {
+    position: absolute; top: 8px; right: 10px;
+    font-size: .7rem; background: var(--border);
+    padding: 3px 8px; border-radius: 4px;
+    cursor: pointer; color: var(--muted);
+    transition: all .2s; font-family: var(--sans);
+  }
+  .copy-badge:hover { background: var(--accent); color: #000; }
+
+  .gen-controls {
+    display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;
+  }
+  .gen-controls button { flex: 1; }
+
+  /* Security tips */
+  .tip-cards { display: grid; gap: 12px; }
+  .tip-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: .855rem;
+  }
+  .tip-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .tip-card strong { color: var(--text); display: block; margin-bottom: 2px; }
+  .tip-card span { color: var(--muted); }
+
+  /* Length slider */
+  #len-label { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin: 10px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flash-list" style="width:100%;max-width:900px;margin-bottom:0;">
+      {% for category, message in messages %}
+        <li class="flash-msg flash-{{ category }}">
+          {% if category == 'error' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<div class="dashboard-grid">
+
+  <!-- Welcome card -->
+  <div class="dash-card welcome-card">
+    <div class="avatar">🔐</div>
+    <div class="welcome-text">
+      <h1>{{ t('dashboard.hello') }}, <span>{{ user.username }}</span></h1>
+      <p>{{ t('dashboard.subtitle') }}</p>
+      <div class="stat-row">
+        <div class="stat-badge">{{ t('dashboard.account_created') }} <strong>{{ user.created_at.strftime('%b %d, %Y') }}</strong></div>
+        <div class="stat-badge">{{ t('dashboard.status') }} <strong style="color:var(--accent)">● {{ t('dashboard.active') }}</strong></div>
+        <div class="stat-badge">{{ t('dashboard.encryption') }} <strong>SHA-256</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Checker -->
+  <div class="dash-card">
+    <h2>🔍 {{ t('dashboard.checker') }}</h2>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label for="check-input">{{ t('dashboard.checker_desc') }}</label>
+      <div class="input-wrap">
+        <input type="password" id="check-input" placeholder="{{ t('dashboard.placeholder_password') }}" />
+        <span class="toggle-eye" id="ceye" onclick="togglePassword('check-input','ceye')">👁</span>
+      </div>
+    </div>
+    <div id="check-result">
+      <div class="meter-track">
+        <div class="meter-fill" id="meter-fill"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="result-label" id="result-label"></span>
+        <span style="color:var(--muted);font-size:.8rem;" id="result-score"></span>
+      </div>
+      <ul class="tip-list" id="result-tips"></ul>
+    </div>
+  </div>
+
+  <!-- Password Generator -->
+  <div class="dash-card">
+    <h2>⚡ {{ t('dashboard.generator') }}</h2>
+    <div style="margin-bottom:12px;">
+      <label>{{ t('dashboard.purpose') }}</label>
+      <div class="input-wrap">
+        <input type="text" id="gen-purpose" placeholder="{{ t('dashboard.purpose_desc') }}" />
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>{{ t('dashboard.length') }}: <span id="len-label">16</span> {{ t('dashboard.characters') }}</label>
+      <input type="range" id="gen-length" min="12" max="40" value="16"
+             oninput="document.getElementById('len-label').textContent=this.value" />
+    </div>
+    <div class="gen-output" id="gen-output">
+      <span style="color:var(--muted)">{{ t('dashboard.placeholder_generate') }}</span>
+    </div>
+    <div class="gen-controls">
+      <button class="btn btn-primary" onclick="runGenerate()">{{ t('dashboard.generate') }}</button>
+      <button class="btn btn-ghost" onclick="copyGenerated()">{{ t('dashboard.copy') }}</button>
+    </div>
+    <div id="copy-msg" style="font-size:.8rem;color:var(--accent);margin-top:8px;display:none;">
+      ✅ {{ t('dashboard.copied') }}
+    </div>
+  </div>
+
+  <!-- Security Tips -->
+  <div class="dash-card full">
+    <h2>🛡 {{ t('dashboard.security') }}</h2>
+    <div class="tip-cards">
+      <div class="tip-card">
+        <span class="tip-icon">🔑</span>
+        <div>
+          <strong>{{ t('dashboard.unique_passwords') }}</strong>
+          <span>{{ t('dashboard.unique_desc') }}</span>
+        </div>
+      </div>
+      <div class="tip-card">
+        <span class="tip-icon">📏</span>
+        <div>
+          <strong>{{ t('dashboard.longer') }}</strong>
+          <span>{{ t('dashboard.longer_desc') }}</span>
+        </div>
+      </div>
+      <div class="tip-card">
+        <span class="tip-icon">📲</span>
+        <div>
+          <strong>{{ t('dashboard.2fa') }}</strong>
+          <span>{{ t('dashboard.2fa_desc') }}</span>
+        </div>
+      </div>
+      <div class="tip-card">
+        <span class="tip-icon">🔄</span>
+        <div>
+          <strong>{{ t('dashboard.rotate') }}</strong>
+          <span>{{ t('dashboard.rotate_desc') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ── Checker ─────────────────────────────── */
+  const checkInp  = document.getElementById('check-input');
+  const checkRes  = document.getElementById('check-result');
+  const meterFill = document.getElementById('meter-fill');
+  const resLabel  = document.getElementById('result-label');
+  const resScore  = document.getElementById('result-score');
+  const resTips   = document.getElementById('result-tips');
+
+  const colors = { Weak: '#ff4d6d', Medium: '#ffb347', Strong: '#00e5a0' };
+
+  checkInp.addEventListener('input', async () => {
+    const pw = checkInp.value;
+    if (!pw) { checkRes.style.display = 'none'; return; }
+    checkRes.style.display = 'block';
+
+    const res  = await fetch('/check-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const data = await res.json();
+
+    const pct = (data.score / data.max_score) * 100;
+    meterFill.style.width = pct + '%';
+    meterFill.style.background = colors[data.label] || '#fff';
+    resLabel.textContent = data.label;
+    resLabel.style.color = colors[data.label] || '#fff';
+    resScore.textContent = `(${data.score}/${data.max_score})`;
+
+    resTips.innerHTML = data.tips.length
+      ? data.tips.map(t => `<li>${t}</li>`).join('')
+      : '<li style="color:var(--accent)">✓ Looks great!</li>';
+  });
+
+  /* ── Generator ───────────────────────────── */
+  let lastGenerated = '';
+
+  async function runGenerate() {
+    const len     = document.getElementById('gen-length').value;
+    const purpose = document.getElementById('gen-purpose').value || 'General use';
+    
+    const res  = await fetch('/generate-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ length: len, purpose: purpose })
+    });
+    const data = await res.json();
+    lastGenerated = data.password;
+
+    const out = document.getElementById('gen-output');
+    out.innerHTML = `<div style="margin-bottom:8px;font-size:.8rem;color:var(--muted);">Purpose: <strong>${data.purpose}</strong></div>${data.password}<span class="copy-badge" onclick="copyGenerated()">copy</span>`;
+  }
+
+  function copyGenerated() {
+    if (!lastGenerated) return;
+    navigator.clipboard.writeText(lastGenerated).then(() => {
+      const msg = document.getElementById('copy-msg');
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 2500);
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ t('login.title') }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h1>// {{ t('login.header') }}</h1>
+    <p>{{ t('login.subtitle') }}</p>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-msg flash-{{ category }}">
+            {% if category == 'error' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="/login" autocomplete="off">
+
+    <!-- Username -->
+    <div class="form-group">
+      <label for="username">{{ t('login.username') }}</label>
+      <input type="text" id="username" name="username"
+             placeholder="{{ t('login.placeholder_username') }}"
+             required
+             value="{{ request.form.get('username', '') }}" />
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label for="password">{{ t('login.password') }}</label>
+      <div class="input-wrap">
+        <input type="password" id="password" name="password"
+               placeholder="{{ t('login.placeholder_password') }}" required />
+        <span class="toggle-eye" id="eye1" onclick="togglePassword('password','eye1')">👁</span>
+      </div>
+    </div>
+
+    <!-- Brute-force note -->
+    <div style="background:rgba(255,179,71,.07);border:1px solid rgba(255,179,71,.2);
+                border-radius:10px;padding:12px 16px;margin-bottom:20px;
+                font-size:.8rem;color:var(--warn);">
+      🔒 {{ t('login.lockout_warning') }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ t('login.submit') }} →</button>
+  </form>
+
+  <div class="form-footer">
+    {{ t('login.no_account') }} <a href="/register">{{ t('login.register_link') }}</a>
+  </div>
+</div>
+{% endblock %}

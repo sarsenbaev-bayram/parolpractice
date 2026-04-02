@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ t('register.title') }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h1>// {{ t('register.header') }}</h1>
+    <p>{{ t('register.subtitle') }}</p>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-msg flash-{{ category }}">
+            {% if category == 'error' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="/register" autocomplete="off">
+
+    <!-- Username -->
+    <div class="form-group">
+      <label for="username">{{ t('register.username') }}</label>
+      <input type="text" id="username" name="username"
+             placeholder="{{ t('register.placeholder_username') }}"
+             minlength="3" required
+             value="{{ request.form.get('username', '') }}" />
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label for="password">{{ t('register.password') }}</label>
+      <div class="input-wrap">
+        <input type="password" id="password" name="password"
+               placeholder="{{ t('register.placeholder_password') }}"
+               minlength="8" required />
+        <span class="toggle-eye" id="eye1" onclick="togglePassword('password','eye1')">👁</span>
+      </div>
+
+      <!-- Strength meter -->
+      <div id="strength-wrap">
+        <div class="strength-bar-track">
+          <div class="strength-bar-fill" id="strength-fill"></div>
+        </div>
+        <span id="strength-label"></span>
+        <div class="strength-tips" id="strength-tips"></div>
+      </div>
+    </div>
+
+    <!-- Generate password button -->
+    <div class="form-group">
+      <button type="button" class="btn btn-ghost" style="width:100%"
+              onclick="generatePassword('password')">
+        ⚡ {{ t('register.generate_btn') }}
+      </button>
+    </div>
+
+    <!-- Policy hint -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;
+                padding:14px 16px;margin-bottom:20px;font-size:.8rem;color:var(--muted);">
+      <strong style="color:var(--text);display:block;margin-bottom:6px;">{{ t('register.policy_hint') }}</strong>
+      {{ t('register.policy_text') }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ t('register.submit') }} →</button>
+  </form>
+
+  <div class="form-footer">
+    {{ t('register.have_account') }} <a href="/login">{{ t('register.login_link') }}</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>initStrengthChecker('password');</script>
+{% endblock %}

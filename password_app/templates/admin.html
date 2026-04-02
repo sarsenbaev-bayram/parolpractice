@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}{{ t('admin.title') }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Admin panel styles */
+  main { align-items: flex-start; padding-top: 40px; }
+
+  .admin-container {
+    width: 100%; max-width: 1200px;
+    animation: slideUp .45s cubic-bezier(.22,.68,0,1.2) both;
+  }
+
+  .admin-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+
+  .admin-header h1 {
+    font-family: var(--mono);
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .admin-header p { color: var(--muted); }
+
+  .users-table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+  }
+
+  .users-table thead {
+    background: rgba(0,229,160,.08);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .users-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-size: .8rem;
+    letter-spacing: .08em;
+  }
+
+  .users-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .users-table tbody tr {
+    transition: background .2s;
+  }
+
+  .users-table tbody tr:hover {
+    background: rgba(0,229,160,.05);
+  }
+
+  .user-row-admin {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .admin-badge {
+    background: rgba(0,229,160,.2);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+
+  .lock-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .85rem;
+  }
+
+  .lock-status.locked { color: var(--danger); }
+  .lock-status.unlocked { color: var(--accent); }
+
+  .purpose-text {
+    color: var(--muted);
+    font-size: .85rem;
+    font-style: italic;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: .8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 500;
+  }
+
+  .btn-sm:hover {
+    background: var(--border);
+    color: var(--accent);
+  }
+
+  .btn-sm.danger {
+    color: var(--danger);
+  }
+
+  .btn-sm.danger:hover {
+    background: rgba(255,77,109,.2);
+    border-color: var(--danger);
+  }
+
+  .btn-sm.warn {
+    color: var(--warn);
+  }
+
+  .btn-sm.warn:hover {
+    background: rgba(255,179,71,.2);
+    border-color: var(--warn);
+  }
+
+  /* No users */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+  }
+
+  .empty-state p { margin-bottom: 12px; }
+
+  /* Stats */
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .stat-card {
+    background: rgba(0,229,160,.08);
+    border: 1px solid rgba(0,229,160,.2);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+
+  .stat-card-label {
+    font-size: .8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .users-table { font-size: .8rem; }
+    .users-table th, .users-table td { padding: 10px 12px; }
+    .action-buttons { flex-direction: column; }
+    .btn-sm { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flash-list" style="width:100%;max-width:1200px;margin-bottom:16px;">
+      {% for category, message in messages %}
+        <li class="flash-msg flash-{{ category }}">
+          {% if category == 'error' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<div class="admin-container">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <h1>⚙️ {{ t('admin.header') }}</h1>
+    <p>{{ t('admin.subtitle') }}</p>
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-card-value">{{ users|length }}</div>
+        <div class="stat-card-label">{{ t('admin.total_users') }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-value">{{ users|selectattr('is_admin')|list|length }}</div>
+        <div class="stat-card-label">{{ t('admin.admins') }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-value">{{ users|selectattr('locked_until')|list|length }}</div>
+        <div class="stat-card-label">{{ t('admin.locked') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="users-table-wrap">
+    {% if users %}
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>{{ t('admin.table_username') }}</th>
+            <th>{{ t('admin.table_status') }}</th>
+            <th>{{ t('admin.table_purpose') }}</th>
+            <th>{{ t('admin.table_created') }}</th>
+            <th>{{ t('admin.table_attempts') }}</th>
+            <th>{{ t('admin.table_actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>
+                <div class="user-row-admin">
+                  <span>{{ user.username }}</span>
+                  {% if user.is_admin %}
+                    <span class="admin-badge">ADMIN</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                {% if user.locked_until and user.locked_until > now %}
+                  <div class="lock-status locked">
+                    🔒 {{ t('admin.locked_status') }}
+                  </div>
+                {% else %}
+                  <div class="lock-status unlocked">
+                    🔓 {{ t('admin.active_status') }}
+                  </div>
+                {% endif %}
+              </td>
+              <td>
+                {% if user.password_purpose %}
+                  <div class="purpose-text" title="{{ user.password_purpose }}">
+                    {{ user.password_purpose }}
+                  </div>
+                {% else %}
+                  <span style="color:var(--muted);">—</span>
+                {% endif %}
+              </td>
+              <td style="font-size:.85rem;color:var(--muted);">
+                {{ user.created_at.strftime('%b %d, %Y') }}
+              </td>
+              <td>
+                <span style="font-family:var(--mono);color:{{ 'var(--danger)' if user.failed_attempts >= 3 else 'var(--text)' }};">
+                  {{ user.failed_attempts }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  {% if user.locked_until and user.locked_until > now %}
+                    <form method="POST" action="/admin/toggle-lock/{{ user.id }}" style="display:inline;">
+                      <button type="submit" class="btn-sm warn">{{ t('admin.unlock') }}</button>
+                    </form>
+                  {% else %}
+                    <form method="POST" action="/admin/toggle-lock/{{ user.id }}" style="display:inline;">
+                      <button type="submit" class="btn-sm warn">{{ t('admin.lock') }}</button>
+                    </form>
+                  {% endif %}
+                  {% if user.id != session.user_id %}
+                    <form method="POST" action="/admin/delete/{{ user.id }}" style="display:inline;" onsubmit="return confirm('Delete {{ user.username }}? This cannot be undone.');">
+                      <button type="submit" class="btn-sm danger">{{ t('admin.delete') }}</button>
+                    </form>
+                  {% else %}
+                    <button class="btn-sm" disabled style="opacity:.5;cursor:not-allowed;">{{ t('admin.self') }}</button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <p>{{ t('admin.no_users') }}</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  // Get current datetime for comparison
+  const now = new Date();
+</script>
+
+{% endblock %}
