@@ -244,8 +244,8 @@ By preparing this for deployment, you now understand:
 
 ## 📝 Notes
 
-- Admin password: `_WnbtX^5vJ*IB33w` (change on first login!)
-- Test user: `testuser / TestUser123!@#`
+- Change admin password on first login
+- Use strong, unique credentials
 - Database file: `users.db` (in .gitignore)
 - Secrets: Never commit `.env` files
 - Updates: Just push to GitHub, DO app auto-deploys

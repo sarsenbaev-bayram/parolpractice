@@ -97,7 +97,7 @@ Once deployed:
 2. **Create account**: Register a new user
 3. **Login**: Test with your credentials
 4. **Admin panel**: 
-   - Login as `admin / _WnbtX^5vJ*IB33w` (or your custom password)
+   - Use your admin credentials to login
    - Visit `/admin` to manage users
 5. **Test features**:
    - Check password strength
@@ -127,11 +127,9 @@ Your project now includes:
 
 ---
 
-## ⚠️ Important: Change Admin Password Before Going Live!
+## ⚠️ Important: Set Up Admin Credentials
 
-Currently admin password is: `_WnbtX^5vJ*IB33w`
-
-After first login to admin panel, change it:
+Before going live, set a strong admin password:
 
 **On your server:**
 ```bash
