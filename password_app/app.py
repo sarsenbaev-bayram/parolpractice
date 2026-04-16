@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Try relative import (for Gunicorn/production), fall back to absolute (for local)
 try:
@@ -30,6 +32,14 @@ app = Flask(__name__)
 
 # Use SECRET_KEY from environment or generate random one
 app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
+
+# Rate Limiter - prevent brute force and DDoS attacks
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # SQLite database stored in the project folder
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -70,6 +80,22 @@ class User(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
+
+
+class SavedPassword(db.Model):
+    """Stores passwords generated and saved by users."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    password_text = db.Column(db.String(255), nullable=False)  # Store hashed password
+    purpose = db.Column(db.String(255), nullable=True)  # What is this password for? (Gmail, Facebook, etc)
+    account_username = db.Column(db.String(255), nullable=True)  # Username for this password
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    strength_score = db.Column(db.Integer, nullable=True)  # Password strength 1-5
+    
+    user = db.relationship('User', backref='saved_passwords')
+
+    def __repr__(self):
+        return f'<SavedPassword {self.purpose}>'
 
 
 def hash_password(password: str) -> str:
@@ -222,6 +248,7 @@ def index():
 
 
 @app.route('/register', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")  # Max 10 registrations per hour (prevent spam)
 def register():
     """Handle new user registration."""
     if 'user_id' in session:
@@ -266,6 +293,7 @@ def register():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Max 5 login attempts per minute (brute force protection)
 def login():
     """Handle user login with brute-force protection."""
     if 'user_id' in session:
@@ -341,6 +369,7 @@ def logout():
 
 
 @app.route('/check-password', methods=['POST'])
+@limiter.limit("30 per minute")  # API rate limit - prevent abuse
 def check_password():
     """
     API endpoint: accepts JSON { "password": "..." }
@@ -356,6 +385,7 @@ def check_password():
 
 @app.route('/generate-password', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")  # API rate limit - prevent abuse
 def generate_password():
     """
     API endpoint: returns a freshly generated strong password.
@@ -384,6 +414,66 @@ def generate_password():
     
     password = generate_strong_password(length)
     return jsonify({"password": password, "purpose": purpose})
+
+
+@app.route('/save-password', methods=['POST'])
+@login_required
+@limiter.limit("20 per minute")  # API rate limit
+def save_password():
+    """
+    Save a generated password to the user's vault.
+    Accepts JSON: { "password": "...", "purpose": "Gmail", "account_username": "user@gmail.com" }
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    password = data.get('password', '').strip()
+    purpose = data.get('purpose', 'General use').strip()
+    account_username = data.get('account_username', '').strip()
+    
+    if not password:
+        return jsonify({"error": "Password is required"}), 400
+    
+    # Check password strength
+    strength = check_password_strength(password)
+    strength_score = strength.get('score', 0)
+    
+    # Hash the password before saving (extra security)
+    password_hash = hash_password(password)
+    
+    # Create and save to database
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    saved_pwd = SavedPassword(
+        user_id=user.id,
+        password_text=password_hash,
+        purpose=purpose,
+        account_username=account_username,
+        strength_score=strength_score
+    )
+    
+    db.session.add(saved_pwd)
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "message": f"Password saved for {purpose}",
+        "strength": strength
+    }), 201
+
+
+@app.route('/saved-passwords')
+@admin_required
+def saved_passwords():
+    """
+    Display all saved passwords (Admin only).
+    """
+    all_passwords = SavedPassword.query.order_by(SavedPassword.created_at.desc()).all()
+    
+    return render_template('saved_passwords.html', passwords=all_passwords, t=t)
 
 
 # ─────────────────────────────────────────────
