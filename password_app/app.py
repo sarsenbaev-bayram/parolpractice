@@ -356,6 +356,10 @@ def login():
 def dashboard():
     """Protected dashboard — only visible when logged in."""
     user = User.query.get(session['user_id'])
+    if not user:
+        session.clear()
+        flash("User not found. Please log in again.", "warning")
+        return redirect(url_for('login'))
     return render_template('dashboard.html', user=user)
 
 
@@ -571,7 +575,14 @@ def toggle_lock(user_id):
 # Startup
 # ─────────────────────────────────────────────
 with app.app_context():
-    db.create_all()   # Create tables if they don't exist yet
+    # Only create tables if they don't exist (prevents "table already exists" errors)
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    existing_tables = inspector.get_table_names()
+    
+    # Only create all tables if User table doesn't exist (indicates first run)
+    if 'user' not in existing_tables:
+        db.create_all()
 
 if __name__ == '__main__':
     print("=" * 50)
