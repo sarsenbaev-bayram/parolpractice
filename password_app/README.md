@@ -1,4 +1,4 @@
-# 🔐 VaultPass — Password Security Web App
+# 🔐 Bayram — Password Security Web App
 
 A beginner-friendly Flask app that demonstrates secure password handling:
 hashed storage, strength checking, generation, and brute-force protection.

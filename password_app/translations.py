@@ -14,7 +14,7 @@ TRANSLATIONS = {
         'nav.register': 'Register',
         
         # Login
-        'login.title': 'Login — VaultPass',
+        'login.title': 'Login — Bayram',
         'login.header': 'Login',
         'login.subtitle': 'Access your secure password manager',
         'login.username': 'Username',
@@ -27,7 +27,7 @@ TRANSLATIONS = {
         'login.lockout_warning': 'Accounts are locked for 15 minutes after 3 failed attempts.',
         
         # Register
-        'register.title': 'Create Account — VaultPass',
+        'register.title': 'Create Account — Bayram',
         'register.header': 'Create Account',
         'register.subtitle': 'Set up your secure password manager',
         'register.username': 'Username',
@@ -74,7 +74,7 @@ TRANSLATIONS = {
         'dashboard.rotate_desc': 'Change important passwords every 6–12 months or after any data breach.',
         
         # Admin Panel
-        'admin.title': 'Admin Panel — VaultPass',
+        'admin.title': 'Admin Panel — Bayram',
         'admin.header': 'Admin Panel',
         'admin.subtitle': 'Manage all users and their security settings',
         'admin.total_users': 'Total Users',
@@ -124,7 +124,7 @@ TRANSLATIONS = {
         'nav.register': 'Регистрация',
         
         # Login
-        'login.title': 'Вход — VaultPass',
+        'login.title': 'Вход — Bayram',
         'login.header': 'Вход',
         'login.subtitle': 'Доступ к вашему менеджеру паролей',
         'login.username': 'Имя пользователя',
@@ -137,7 +137,7 @@ TRANSLATIONS = {
         'login.lockout_warning': 'Учетная запись блокируется на 15 минут после 3 неудачных попыток.',
         
         # Register
-        'register.title': 'Создать учетную запись — VaultPass',
+        'register.title': 'Создать учетную запись — Bayram',
         'register.header': 'Создать учетную запись',
         'register.subtitle': 'Установите безопасный менеджер паролей',
         'register.username': 'Имя пользователя',
@@ -153,7 +153,7 @@ TRANSLATIONS = {
         'register.generate_btn': 'Генерировать надежный пароль',
         
         # Dashboard
-        'dashboard.title': 'Панель управления — VaultPass',
+        'dashboard.title': 'Панель управления — Bayram',
         'dashboard.hello': 'Привет',
         'dashboard.subtitle': 'Ваша защищенная панель управления менеджером паролей',
         'dashboard.account_created': 'Учетная запись создана',
@@ -184,7 +184,7 @@ TRANSLATIONS = {
         'dashboard.rotate_desc': 'Меняйте важные пароли каждые 6–12 месяцев.',
         
         # Admin Panel
-        'admin.title': 'Панель администратора — VaultPass',
+        'admin.title': 'Панель администратора — Bayram',
         'admin.header': 'Панель администратора',
         'admin.subtitle': 'Управляйте всеми пользователями и их настройками безопасности',
         'admin.total_users': 'Всего пользователей',
@@ -234,7 +234,7 @@ TRANSLATIONS = {
         'nav.register': 'Ro\'yxatdan o\'tish',
         
         # Login
-        'login.title': 'Kirish — VaultPass',
+        'login.title': 'Kirish — Bayram',
         'login.header': 'Kirish',
         'login.subtitle': 'Parol menejeringizga kirish',
         'login.username': 'Foydalanuvchi nomi',
@@ -247,7 +247,7 @@ TRANSLATIONS = {
         'login.lockout_warning': 'Hisob 15 daqiqaga bloklansdi 3 ta muvaffaqiyatsiz urinishdan keyin.',
         
         # Register
-        'register.title': 'Hisob yaratish — VaultPass',
+        'register.title': 'Hisob yaratish — Bayram',
         'register.header': 'Hisob yaratish',
         'register.subtitle': 'Xavfsiz parol menedjerini o\'rnatish',
         'register.username': 'Foydalanuvchi nomi',
@@ -263,7 +263,7 @@ TRANSLATIONS = {
         'register.generate_btn': 'Kuchli parol yaratish',
         
         # Dashboard
-        'dashboard.title': 'Bosh sahifa — VaultPass',
+        'dashboard.title': 'Bosh sahifa — Bayram',
         'dashboard.hello': 'Salom',
         'dashboard.subtitle': 'Sizning xavfsiz parol menejer bosh sahifasi',
         'dashboard.account_created': 'Hisob yaratildi',
@@ -294,7 +294,7 @@ TRANSLATIONS = {
         'dashboard.rotate_desc': 'Muhim parollarni har 6–12 oyda o\'zgartiring.',
         
         # Admin Panel
-        'admin.title': 'Admin paneli — VaultPass',
+        'admin.title': 'Admin paneli — Bayram',
         'admin.header': 'Admin paneli',
         'admin.subtitle': 'Barcha foydalanuvchilar va ularning xavfsizlik sozlamalarini boshqaring',
         'admin.total_users': 'Jami foydalanuvchilar',
@@ -344,7 +344,7 @@ TRANSLATIONS = {
         'nav.register': 'Registrieren',
         
         # Login
-        'login.title': 'Anmelden — VaultPass',
+        'login.title': 'Anmelden — Bayram',
         'login.header': 'Anmelden',
         'login.subtitle': 'Greifen Sie auf Ihren sicheren Passwort-Manager zu',
         'login.username': 'Benutzername',
@@ -357,7 +357,7 @@ TRANSLATIONS = {
         'login.lockout_warning': 'Konto wird nach 3 fehlgeschlagenen Versuchen 15 Minuten lang gesperrt.',
         
         # Register
-        'register.title': 'Konto erstellen — VaultPass',
+        'register.title': 'Konto erstellen — Bayram',
         'register.header': 'Konto erstellen',
         'register.subtitle': 'Richten Sie Ihren sicheren Passwort-Manager ein',
         'register.username': 'Benutzername',
@@ -404,7 +404,7 @@ TRANSLATIONS = {
         'dashboard.rotate_desc': 'Ändern Sie wichtige Passwörter alle 6–12 Monate.',
         
         # Admin Panel
-        'admin.title': 'Admin-Panel — VaultPass',
+        'admin.title': 'Admin-Panel — Bayram',
         'admin.header': 'Admin-Panel',
         'admin.subtitle': 'Verwalten Sie alle Benutzer und ihre Sicherheitseinstellungen',
         'admin.total_users': 'Gesamt Benutzer',
