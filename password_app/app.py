@@ -388,9 +388,8 @@ def check_password():
 @limiter.limit("20 per minute")  # API rate limit - prevent abuse
 def generate_password():
     """
-    API endpoint: returns a freshly generated strong password.
+    API endpoint: generates strong password AND auto-saves to vault.
     Accepts JSON: { "length": 16, "purpose": "..." }
-    Stores purpose in user profile.
     """
     data = request.get_json()
     if not data:
@@ -402,18 +401,43 @@ def generate_password():
     except (ValueError, TypeError):
         length = 16
     
-    purpose = data.get('purpose', '').strip()
-    if not purpose:
-        purpose = 'General use'
+    purpose = data.get('purpose', 'General use').strip()
+    account_username = data.get('account_username', '').strip()
     
-    # Save purpose to current user
     user = User.query.get(session['user_id'])
-    if user:
-        user.password_purpose = purpose
-        db.session.commit()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     
+    # Generate password
     password = generate_strong_password(length)
-    return jsonify({"password": password, "purpose": purpose})
+    
+    # Check strength
+    strength = check_password_strength(password)
+    strength_score = strength.get('score', 0)
+    
+    # Hash password before saving
+    password_hash = hash_password(password)
+    
+    # Auto-save to vault
+    saved_pwd = SavedPassword(
+        user_id=user.id,
+        password_text=password_hash,
+        purpose=purpose,
+        account_username=account_username,
+        strength_score=strength_score
+    )
+    
+    db.session.add(saved_pwd)
+    db.session.commit()
+    
+    return jsonify({
+        "password": password,
+        "purpose": purpose,
+        "account_username": account_username,
+        "strength": strength,
+        "auto_saved": True,
+        "message": f"Password auto-saved to vault!"
+    })
 
 
 @app.route('/save-password', methods=['POST'])
@@ -466,14 +490,26 @@ def save_password():
 
 
 @app.route('/saved-passwords')
-@admin_required
+@login_required
 def saved_passwords():
     """
-    Display all saved passwords (Admin only).
+    Display user's saved passwords (or all if admin).
+    - Regular users see only their own passwords
+    - Admin sees all users' passwords
     """
-    all_passwords = SavedPassword.query.order_by(SavedPassword.created_at.desc()).all()
+    user = User.query.get(session['user_id'])
+    if not user:
+        flash("User not found", "error")
+        return redirect(url_for('login'))
     
-    return render_template('saved_passwords.html', passwords=all_passwords, t=t)
+    if user.is_admin:
+        # Admin sees all passwords
+        passwords = SavedPassword.query.order_by(SavedPassword.created_at.desc()).all()
+    else:
+        # Regular users see only their own
+        passwords = SavedPassword.query.filter_by(user_id=user.id).order_by(SavedPassword.created_at.desc()).all()
+    
+    return render_template('saved_passwords.html', passwords=passwords, t=t, is_admin=user.is_admin)
 
 
 # ─────────────────────────────────────────────
