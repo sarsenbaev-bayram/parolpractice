@@ -13,7 +13,12 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
-from translations import get_translation, get_all_languages
+
+# Try relative import (for Gunicorn/production), fall back to absolute (for local)
+try:
+    from .translations import get_translation, get_all_languages
+except ImportError:
+    from translations import get_translation, get_all_languages
 
 # Load environment variables from .env file
 load_dotenv()
